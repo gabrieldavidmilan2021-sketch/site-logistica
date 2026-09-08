@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Investimentos</title><link rel="stylesheet" href="../css/style.css"></head>
+<body><div class="app"><aside class="sidebar"><div class="brand"><span>✦</span><div><strong>Minha Loja</strong><small>Gestão financeira</small></div></div><nav><a href="../index.html">🏠 Central</a><a href="vendas.html" class="">🛍️ Vendas</a><a href="gastos.html" class="">💸 Gastos</a><a href="investimentos.html" class="active">📈 Investimentos</a><a href="lucros.html" class="">💰 Lucros</a></nav><div class="side-note">Tudo salvo automaticamente no navegador.</div></aside>
+<main class="content"><header class="topbar"><div><h1>Investimentos</h1><p>Registre dinheiro aplicado em estoque, equipamentos e melhorias.</p></div><a class="button" href="../index.html">← Central</a></header>
+<section class="panel"><form id="form" class="form">
+<div class="field"><label>Data</label><input id="data" type="date"></div>
+<div class="field"><label>Nome do produto</label><input id="produto" type="text" maxlength="120" placeholder="Digite o nome do produto"></div><div class="field"><label>Descrição</label><input id="descricao" placeholder="Ex.: Camisa personalizada"></div>
+<div class="field"><label>Categoria</label><input id="categoria" placeholder="Ex.: Material"></div>
+<div class="field"><label>Preço / valor (R$)</label><input id="valor" type="number" step="0.01" min="0"></div>
+<div class="field"><label>Foto</label><input id="foto" type="file" accept="image/*"></div>
+<div class="field wide"><label>Observação</label><input id="obs" placeholder="Informações adicionais"></div>
+<div class="actions wide"><button class="button" type="submit">＋ Adicionar registro</button><button class="ghost" type="button" onclick="resetForm()">Limpar</button></div>
+</form></section>
+<section class="panel"><div class="table-head"><h2>Registros</h2><div><input id="search" class="search" placeholder="🔎 Pesquisar..." oninput="render()"><select id="period" onchange="render()"><option value="all">Todos</option><option value="month">Este mês</option><option value="year">Este ano</option></select></div></div>
+<div class="tools"><span id="selectedInfo">0 selecionados</span><button class="ghost" onclick="sumSelected()">Σ Somar selecionados</button><button class="ghost" onclick="avgSelected()">M Média</button><button class="danger small" onclick="deleteSelected()">Excluir selecionados</button></div>
+<div class="table-wrap"><table><thead><tr><th><input type="checkbox" id="checkAll" onchange="toggleAll(this)"></th><th>Foto</th><th>Nome do produto</th><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th>Observação</th><th>Ações</th></tr></thead><tbody id="tbody"></tbody><tfoot><tr><td colspan="6">TOTAL</td><td id="total">R$ 0,00</td><td colspan="2"></td></tr></tfoot></table></div></section>
+</main></div>
+<div id="modal" class="modal hidden"><div class="modal-box"><button class="close" onclick="closeModal()">×</button><h2>Editar registro</h2><form id="editForm" class="form"></form></div></div>
+<script src="../js/app.js"></script><script>
+const TYPE='investimentos'; let editing=null;
+document.getElementById('data').valueAsDate=new Date();
+function resetForm(){document.getElementById('form').reset();document.getElementById('data').valueAsDate=new Date()}
+document.getElementById('form').addEventListener('submit',async e=>{
+ e.preventDefault(); const d=getData(), f=document.getElementById('foto').files[0]; let photo='';
+ if(f){photo=await readFile(f)}
+ d[TYPE].push({id:uid(),produtoId:"",produtoNome:produto.value.trim(),data:data.value,descricao:descricao.value,categoria:categoria.value,valor:Number(valor.value||0),foto:photo,obs:obs.value});saveData(d);resetForm();render();
+});
+function readFile(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(f)})}
+function filtered(){const d=getData()[TYPE], q=search.value.toLowerCase(), p=period.value, now=new Date();return d.filter(x=>{const text=(productName(x.produtoId)||x.produtoNome||'')+' '+x.descricao+' '+x.categoria+' '+x.obs.toLowerCase();if(q&&!text.includes(q))return false;if(p==='month'){const z=new Date(x.data+'T12:00');if(z.getMonth()!=now.getMonth()||z.getFullYear()!=now.getFullYear())return false}if(p==='year'&&x.data?.slice(0,4)!=now.getFullYear())return false;return true}).sort((a,b)=>(b.data||'').localeCompare(a.data||''))}
+function render(){const arr=filtered();tbody.innerHTML=arr.map(x=>`<tr><td><input class="rowcheck" type="checkbox" value="${x.id}" onchange="selectionChanged()"></td><td>${imagePreview(x.foto)}</td><td><b>${esc(productName(x.produtoId)||x.produtoNome||'—')}</b></td><td>${x.data?new Date(x.data+'T12:00').toLocaleDateString('pt-BR'):'—'}</td><td><b>${esc(x.descricao)}</b></td><td>${esc(x.categoria)}</td><td class="money">${brl(x.valor)}</td><td>${esc(x.obs)}</td><td><button class="icon" onclick="edit('${x.id}')">✏️</button><button class="icon" onclick="del('${x.id}')">🗑️</button></td></tr>`).join('')||`<tr><td colspan="9" class="empty">Nenhum registro encontrado.</td></tr>`;total.textContent=brl(arr.reduce((a,x)=>a+x.valor,0));selectionChanged()}
+function selected(){return [...document.querySelectorAll('.rowcheck:checked')].map(c=>c.value)}
+function selectionChanged(){selectedInfo.textContent=selected().length+' selecionado(s)'}
+function toggleAll(c){document.querySelectorAll('.rowcheck').forEach(x=>x.checked=c.checked);selectionChanged()}
+function sumSelected(){const ids=selected(), d=getData()[TYPE];alert('Soma selecionada: '+brl(d.filter(x=>ids.includes(x.id)).reduce((a,x)=>a+x.valor,0)))}
+function avgSelected(){const ids=selected(), d=getData()[TYPE].filter(x=>ids.includes(x.id));alert('Média selecionada: '+brl(d.length?d.reduce((a,x)=>a+x.valor,0)/d.length:0))}
+function deleteSelected(){const ids=selected();if(!ids.length)return alert('Selecione registros.');if(confirm('Excluir os registros selecionados?')){const d=getData();d[TYPE]=d[TYPE].filter(x=>!ids.includes(x.id));saveData(d);render()}}
+function del(id){if(confirm('Excluir este registro?')){const d=getData();d[TYPE]=d[TYPE].filter(x=>x.id!==id);saveData(d);render()}}
+function edit(id){const x=getData()[TYPE].find(a=>a.id===id);editing=id;document.getElementById('editForm').innerHTML=`<div class="field"><label>Nome do produto</label><input id="ed_produto" type="text" maxlength="120" placeholder="Digite o nome do produto"></div><div class="field"><label>Data</label><input id="ed_data" type="date" value="${x.data||''}"></div><div class="field"><label>Descrição</label><input id="ed_desc" value="${esc(x.descricao)}"></div><div class="field"><label>Categoria</label><input id="ed_cat" value="${esc(x.categoria)}"></div><div class="field"><label>Valor</label><input id="ed_val" type="number" step="0.01" value="${x.valor}"></div><div class="field wide"><label>Observação</label><input id="ed_obs" value="${esc(x.obs)}"></div><div class="actions wide"><button class="button">Salvar alterações</button></div>`;document.getElementById('modal').classList.remove('hidden');ed_produto.value=x.produtoNome||productName(x.produtoId)||'';document.getElementById('editForm').onsubmit=e=>{e.preventDefault();const d=getData(),z=d[TYPE].find(a=>a.id===editing);Object.assign(z,{produtoId:"",produtoNome:ed_produto.value.trim(),data:ed_data.value,descricao:ed_desc.value,categoria:ed_cat.value,valor:Number(ed_val.value||0),obs:ed_obs.value});saveData(d);closeModal();render()}}
+function closeModal(){modal.classList.add('hidden');editing=null}
+render();
+</script></body></html>
