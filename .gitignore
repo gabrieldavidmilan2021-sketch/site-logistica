@@ -1,4 +1,5 @@
 loja.db
+loja.db.backup*
 teste_loja.db
 __pycache__/
 *.py[cod]
