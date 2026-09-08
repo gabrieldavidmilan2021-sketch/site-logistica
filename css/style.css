@@ -50,6 +50,12 @@ button,input,select,textarea{max-width:100%;font:inherit}
 .check-options{display:flex;flex-wrap:wrap;gap:12px;align-items:center;min-height:42px}
 .check-options label{display:flex;align-items:center;gap:6px;white-space:nowrap}
 .check-options input{width:17px;height:17px;margin:0}
+.admin-link{display:block;margin-top:10px;padding:0;border:0;background:transparent;color:#8f95a8;font-size:11px;text-decoration:underline;cursor:pointer}
+.admin-link:hover{color:#fff}
+.admin-box{max-width:420px}
+.admin-box p{color:#70758a;font-size:13px;line-height:1.5}
+.admin-tools{margin-top:20px;padding-top:18px;border-top:1px solid #e8e9ef}
+.admin-tools p{margin:0 0 10px;font-weight:600;color:#202331}
 /* Redesign da tela de tarefas */
 body:has(.sidebar a.active[href="tarefas.html"]){background:#eef2f3}
 body:has(.sidebar a.active[href="tarefas.html"]) .content{max-width:1280px;padding:38px 42px}

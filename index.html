@@ -18,11 +18,10 @@
     <a href="pages/lucros.html">💰 Lucros</a>
     <a href="pages/tarefas.html">✅ Tarefas</a>
   </nav>
-  <div class="side-note">Seus dados ficam salvos neste navegador automaticamente.</div>
+  <div class="side-note">Seus dados ficam salvos neste navegador automaticamente.</div><button class="admin-link" type="button" onclick="openAdminPanel()">Administração</button>
 </aside>
 <main class="content">
-<header class="topbar"><div><h1>Central da loja</h1><p>Organize vendas, gastos, investimentos e resultados.</p></div>
-<button class="danger small" onclick="clearAll()">Limpar todos os dados</button></header>
+<header class="topbar"><div><h1>Central da loja</h1><p>Organize vendas, gastos, investimentos e resultados.</p></div></header>
 <section class="cards">
   <div class="card"><span>Vendas</span><b id="vendas">R$ 0,00</b><small id="vendasQtd">0 registros</small></div>
   <div class="card"><span>Gastos</span><b id="gastos">R$ 0,00</b><small id="gastosQtd">0 registros</small></div>
@@ -44,6 +43,13 @@
 <div id="summary"></div>
 </section>
 </main></div>
+<div id="adminModal" class="modal hidden"><div class="modal-box admin-box"><button class="close" type="button" onclick="closeAdminPanel()">×</button><h2>Administração</h2><p>Digite a senha para acessar as ações protegidas.</p><form id="adminLogin"><div class="field"><label for="adminPassword">Senha</label><input id="adminPassword" type="password" inputmode="numeric" autocomplete="off" required></div><button class="button" type="submit">Entrar</button></form><div id="adminTools" class="admin-tools hidden"><p>Ações administrativas</p><button class="danger" type="button" onclick="clearAll()">Limpar todos os dados</button></div></div></div>
 <script src="js/app.js"></script>
-<script>renderDashboard();</script>
+<script>
+const adminModal=document.getElementById('adminModal'), adminLogin=document.getElementById('adminLogin'), adminPassword=document.getElementById('adminPassword'), adminTools=document.getElementById('adminTools');
+function openAdminPanel(){adminModal.classList.remove('hidden');adminLogin.classList.remove('hidden');adminTools.classList.add('hidden');adminPassword.value='';adminPassword.focus()}
+function closeAdminPanel(){adminModal.classList.add('hidden')}
+adminLogin.addEventListener('submit',event=>{event.preventDefault();if(adminPassword.value==='812799'){adminLogin.classList.add('hidden');adminTools.classList.remove('hidden')}else{alert('Senha incorreta.');adminPassword.select()}});
+renderDashboard();
+</script>
 </body></html>

@@ -50,6 +50,10 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function imagePreview(src){return src?`<img class="thumb" src="${esc(src)}" alt="Foto">`:'<span class="no-photo">—</span>'}
 function clearAll(){
+  if(prompt('Digite a senha novamente para apagar TODOS os dados da loja:')!=='812799'){
+    alert('Senha incorreta. Os dados não foram apagados.');
+    return;
+  }
   if(confirm('Apagar TODOS os dados desta loja? Esta ação não pode ser desfeita.')){
     saveData(normalizeData({})); location.reload();
   }
