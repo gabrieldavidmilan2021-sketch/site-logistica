@@ -1,3 +1,52 @@
+/* Responsividade global */
+html{overflow-x:hidden}
+button,input,select,textarea{max-width:100%;font:inherit}
+.table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.table-wrap table{min-width:860px}
+@media (max-width:1100px){
+	.content{padding:26px;}
+	.cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+	.grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:760px){
+	.app{display:block;min-height:100vh}
+	.sidebar{position:static;width:100%;height:auto;padding:12px 12px 10px}
+	.brand{padding:4px 6px 12px}
+	.brand span{font-size:24px}
+	.sidebar nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none}
+	.sidebar nav::-webkit-scrollbar{display:none}
+	.sidebar nav a{flex:0 0 auto;padding:10px 11px;white-space:nowrap;font-size:13px}
+	.side-note{display:none}
+	.content{margin-left:0;width:100%;max-width:none;padding:22px 16px}
+	.topbar{align-items:flex-start;flex-direction:column;gap:14px;margin-bottom:20px}
+	.topbar h1{font-size:26px}
+	.topbar p{font-size:14px;line-height:1.45}
+	.topbar button{width:100%}
+	.cards{grid-template-columns:1fr;gap:10px;margin-bottom:20px}
+	.card{padding:16px}
+	.card b{font-size:21px}
+	.grid{grid-template-columns:1fr;gap:10px}
+	.module{padding:16px}
+	.panel{padding:16px;margin-bottom:16px;border-radius:12px}
+	.summary-row{gap:14px;padding:12px 0;font-size:14px}
+	.summary-row b{text-align:right}
+	.form{grid-template-columns:1fr!important;gap:12px}
+	.field,.field.wide,.actions{grid-column:auto!important;width:100%}
+	.actions{display:flex;flex-wrap:wrap;gap:8px}
+	.actions .button,.actions button{flex:1 1 140px;min-height:44px}
+	.toolbar{display:flex;flex-wrap:wrap;gap:8px}
+	.toolbar>*{flex:1 1 140px}
+	.table-wrap{margin:0 -4px;width:calc(100% + 8px)}
+	.task-list-heading{align-items:stretch;flex-direction:column;gap:10px}
+	.task-list-heading select{width:100%}
+	.task-item{align-items:flex-start;padding:14px 12px;gap:10px}
+	.task-actions{margin-left:auto}
+}
+@media (max-width:380px){
+	.content{padding-inline:12px}
+	.sidebar nav a{font-size:12px;padding-inline:9px}
+	.card{padding:14px}
+}
 /* Redesign da tela de tarefas */
 body:has(.sidebar a.active[href="tarefas.html"]){background:#eef2f3}
 body:has(.sidebar a.active[href="tarefas.html"]) .content{max-width:1280px;padding:38px 42px}
