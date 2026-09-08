@@ -96,5 +96,15 @@ function renderDashboard(){
  if(summary) summary.innerHTML=`<div class="summary-row"><span>Receita de vendas</span><b>${brl(sums.vendas)}</b></div><div class="summary-row"><span>Total de gastos</span><b>${brl(sums.gastos)}</b></div><div class="summary-row"><span>Total investido</span><b>${brl(sums.investimentos)}</b></div><div class="summary-row total"><span>Resultado líquido</span><b>${brl(sums.vendas-sums.gastos-sums.investimentos)}</b></div>`;
 }
 function productName(id){const p=getData().produtos.find(x=>x.id===id);return p?p.nome:''}
+function ensureTasksLink(){
+  const nav=document.querySelector('.sidebar nav');
+  if(nav&&location.pathname.includes('/pages/')&&!nav.querySelector('a[href="tarefas.html"]')){
+    const link=document.createElement('a');
+    link.href='tarefas.html';
+    link.textContent='✅ Tarefas';
+    nav.appendChild(link);
+  }
+}
+ensureTasksLink();
 window.addEventListener('dataReady',()=>{if(typeof renderDashboard==='function') renderDashboard(); if(typeof render==='function') render(); if(typeof renderTasks==='function') renderTasks(); if(typeof renderProducts==='function') renderProducts();});
 loadData();
