@@ -49,6 +49,30 @@ function brl(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',cur
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function imagePreview(src){return src?`<img class="thumb" src="${esc(src)}" alt="Foto">`:'<span class="no-photo">—</span>'}
+function downloadBackup(){
+  const backup={version:1,createdAt:new Date().toISOString(),data:normalizeData(getData())};
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+  const link=document.createElement('a');
+  link.href=URL.createObjectURL(blob);
+  link.download='backup-minha-loja-'+new Date().toISOString().slice(0,10)+'.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+async function restoreBackup(input){
+  const file=input.files[0];
+  input.value='';
+  if(!file)return;
+  if(prompt('Digite a senha para restaurar o backup:')!=='812799'){alert('Senha incorreta.');return}
+  try{
+    const content=JSON.parse(await file.text());
+    const restored=normalizeData(content.data||content);
+    const total=Object.values(restored).reduce((sum,items)=>sum+items.length,0);
+    if(!confirm('Restaurar '+total+' registros? Os dados atuais serão substituídos.'))return;
+    await saveData(restored);
+    alert('Backup restaurado com sucesso.');
+    location.reload();
+  }catch(error){alert('Não foi possível ler este arquivo de backup.')}
+}
 function clearAll(){
   if(prompt('Digite a senha novamente para apagar TODOS os dados da loja:')!=='812799'){
     alert('Senha incorreta. Os dados não foram apagados.');
