@@ -1,0 +1,6 @@
+https://github.com/gabrieldavidmilan2021-sketch/site-logistica
+
+cd E:\LOJA_final\LOJA
+git add .
+git commit -m "Atualiza sistema"
+git push
