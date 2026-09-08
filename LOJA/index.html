@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Central da Loja</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><span>✦</span><div><strong>Minha Loja</strong><small>Gestão financeira</small></div></div>
+  <nav>
+    <a class="active" href="index.html">🏠 Central</a>
+    <a href="pages/vendas.html">🛍️ Vendas</a>
+    <a href="pages/gastos.html">💸 Gastos</a>
+    <a href="pages/investimentos.html">📈 Investimentos</a>
+    <a href="pages/lucros.html">💰 Lucros</a>
+    <a href="pages/tarefas.html">✅ Tarefas</a>
+  </nav>
+  <div class="side-note">Seus dados ficam salvos neste navegador automaticamente.</div>
+</aside>
+<main class="content">
+<header class="topbar"><div><h1>Central da loja</h1><p>Organize vendas, gastos, investimentos e resultados.</p></div>
+<button class="danger small" onclick="clearAll()">Limpar todos os dados</button></header>
+<section class="cards">
+  <div class="card"><span>Vendas</span><b id="vendas">R$ 0,00</b><small id="vendasQtd">0 registros</small></div>
+  <div class="card"><span>Gastos</span><b id="gastos">R$ 0,00</b><small id="gastosQtd">0 registros</small></div>
+  <div class="card"><span>Investimentos</span><b id="investimentos">R$ 0,00</b><small id="investimentosQtd">0 registros</small></div>
+  <div class="card highlight"><span>Lucro líquido</span><b id="lucro">R$ 0,00</b><small>Vendas − gastos − investimentos</small></div>
+</section>
+<section class="quick">
+<h2>Acesso rápido</h2>
+<div class="grid">
+<a href="pages/vendas.html" class="module"><strong>🛍️ Vendas</strong><span>Registre pedidos, clientes, fotos e valores.</span></a>
+<a href="pages/gastos.html" class="module"><strong>💸 Gastos</strong><span>Controle materiais, fretes, contas e despesas.</span></a>
+<a href="pages/investimentos.html" class="module"><strong>📈 Investimentos</strong><span>Controle máquinas, estoque e melhorias.</span></a>
+<a href="pages/lucros.html" class="module"><strong>💰 Lucros</strong><span>Veja lucro bruto, líquido e margem.</span></a>
+<a href="pages/tarefas.html" class="module"><strong>✅ Tarefas</strong><span>Organize o que precisa ser feito e acompanhe os prazos.</span></a>
+</div>
+</section>
+<section class="panel">
+<h2>Resumo financeiro</h2>
+<div id="summary"></div>
+</section>
+</main></div>
+<script src="js/app.js"></script>
+<script>renderDashboard();</script>
+</body></html>
