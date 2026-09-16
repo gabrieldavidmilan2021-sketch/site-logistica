@@ -7,8 +7,9 @@ let SAVE_QUEUE=Promise.resolve();
 function normalizeData(d){
   const base={vendas:[],gastos:[],investimentos:[],tarefas:[],produtos:[]};
   const source=d&&typeof d==='object'?d:{};
-  Object.keys(base).forEach(key=>{base[key]=Array.isArray(source[key])?source[key]:[]});
-  return base;
+  const normalized={...source};
+  Object.keys(base).forEach(key=>{normalized[key]=Array.isArray(source[key])?source[key]:[]});
+  return normalized;
 }
 function getData(){ return DATA; }
 
@@ -49,8 +50,17 @@ function brl(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',cur
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function imagePreview(src){return src?`<img class="thumb" src="${esc(src)}" alt="Foto">`:'<span class="no-photo">—</span>'}
-function downloadBackup(){
-  const backup={version:1,createdAt:new Date().toISOString(),data:normalizeData(getData())};
+async function downloadBackup(){
+  await SAVE_QUEUE;
+  let data=normalizeData(getData());
+  try{
+    const response=await fetch('/api/data',{cache:'no-store'});
+    if(!response.ok)throw new Error('Servidor indisponível');
+    data=normalizeData(await response.json());
+  }catch(error){
+    alert('Não foi possível acessar o servidor. O backup será criado com os dados salvos neste navegador.');
+  }
+  const backup={version:1,createdAt:new Date().toISOString(),data};
   const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
   const link=document.createElement('a');
   link.href=URL.createObjectURL(blob);

@@ -7,6 +7,14 @@ app = Flask(__name__, static_folder=".", static_url_path="")
 
 DEFAULT = {"vendas": [], "gastos": [], "investimentos": [], "tarefas": [], "produtos": []}
 
+def normalize_data(data):
+    source = data if isinstance(data, dict) else {}
+    # Mantém campos adicionais para que versões futuras não descartem informações.
+    normalized = dict(source)
+    for key in DEFAULT:
+        normalized[key] = source.get(key, []) if isinstance(source.get(key, []), list) else []
+    return normalized
+
 def init_db():
     with sqlite3.connect(DB) as con:
         con.execute("CREATE TABLE IF NOT EXISTS loja_data (id INTEGER PRIMARY KEY CHECK(id=1), data TEXT NOT NULL)")
@@ -21,11 +29,10 @@ def read_data():
         data = json.loads(row[0]) if row else {}
     except Exception:
         data = {}
-    return {**DEFAULT, **data}
+    return normalize_data(data)
 
 def write_data(data):
-    source = data if isinstance(data, dict) else {}
-    merged = {key: source.get(key, []) if isinstance(source.get(key, []), list) else [] for key in DEFAULT}
+    merged = normalize_data(data)
     with sqlite3.connect(DB) as con:
         con.execute("UPDATE loja_data SET data=? WHERE id=1", (json.dumps(merged, ensure_ascii=False),))
 

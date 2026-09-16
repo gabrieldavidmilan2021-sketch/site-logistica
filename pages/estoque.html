@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estoque</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand"><span>✦</span><div><strong>Minha Loja</strong><small>Gestão financeira</small></div></div>
+      <nav>
+        <a href="../index.html">🏠 Central</a>
+        <a href="vendas.html">🛍️ Vendas</a>
+        <a href="gastos.html">💸 Gastos</a>
+        <a href="investimentos.html">📈 Investimentos</a>
+        <a class="active" href="estoque.html">📦 Estoque</a>
+        <a href="lucros.html">💰 Lucros</a>
+        <a href="tarefas.html">✅ Tarefas</a>
+      </nav>
+      <div class="side-note">Controle o estoque da loja em um só lugar.</div>
+    </aside>
+
+    <main class="content">
+      <header class="topbar">
+        <div>
+          <h1>Estoque</h1>
+          <p>Cadastre os produtos e acompanhe a quantidade disponível em estoque.</p>
+        </div>
+        <a class="button" href="../index.html">← Central</a>
+      </header>
+
+      <section class="panel task-form-panel">
+        <div class="section-heading">
+          <div>
+            <h2 id="stockFormTitle">Novo produto</h2>
+            <p>Preencha o nome e a quantidade em estoque.</p>
+          </div>
+        </div>
+
+        <form id="stockForm" class="form">
+          <div class="field wide">
+            <label for="stockName">Nome do produto</label>
+            <input id="stockName" maxlength="120" placeholder="Ex.: Camisa básica" required>
+          </div>
+          <div class="field">
+            <label for="stockQty">Quantidade em estoque</label>
+            <input id="stockQty" type="number" min="0" step="1" placeholder="0" required>
+          </div>
+          <div class="actions wide">
+            <button class="button" id="submitStock" type="submit">＋ Adicionar produto</button>
+            <button class="ghost hidden" id="cancelStockEdit" type="button" onclick="cancelStockEdit()">Cancelar edição</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="task-list-heading">
+          <div>
+            <h2>Produtos em estoque</h2>
+            <span id="stockCount" class="muted">0 produto(s)</span>
+          </div>
+        </div>
+        <div id="stockList" class="stock-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../js/app.js"></script>
+  <script>
+    let editingProduct = null;
+    const form = document.getElementById('stockForm');
+    const nameInput = document.getElementById('stockName');
+    const qtyInput = document.getElementById('stockQty');
+
+    function renderStock() {
+      const products = getData().produtos
+        .slice()
+        .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
+      document.getElementById('stockCount').textContent = products.length + ' produto(s)';
+      document.getElementById('stockList').innerHTML = products.length
+        ? products.map(product => `
+            <article class="task-item stock-item">
+              <div class="task-copy">
+                <strong>${esc(product.nome)}</strong>
+                <span class="stock-meta">Quantidade: <b>${Number(product.quantidade || 0)}</b></span>
+              </div>
+              <div class="task-actions">
+                <button class="icon" title="Editar produto" aria-label="Editar produto" onclick="editProduct('${product.id}')">✏️</button>
+                <button class="icon" title="Excluir produto" aria-label="Excluir produto" onclick="deleteProduct('${product.id}')">🗑️</button>
+              </div>
+            </article>
+          `).join('')
+        : '<div class="empty task-empty">Nenhum produto cadastrado no estoque.</div>';
+    }
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      const data = getData();
+      const nome = nameInput.value.trim();
+      const quantidade = Number(qtyInput.value || 0);
+
+      if (!nome) {
+        alert('Informe o nome do produto.');
+        nameInput.focus();
+        return;
+      }
+
+      if (editingProduct) {
+        const product = data.produtos.find(item => item.id === editingProduct);
+        if (product) {
+          product.nome = nome;
+          product.quantidade = quantidade;
+        }
+      } else {
+        data.produtos.push({
+          id: uid(),
+          nome,
+          quantidade,
+          criadoEm: new Date().toISOString()
+        });
+      }
+
+      saveData(data);
+      cancelStockEdit();
+      renderStock();
+    });
+
+    function editProduct(id) {
+      const product = getData().produtos.find(item => item.id === id);
+      if (!product) return;
+
+      editingProduct = id;
+      nameInput.value = product.nome;
+      qtyInput.value = Number(product.quantidade || 0);
+      document.getElementById('stockFormTitle').textContent = 'Editar produto';
+      document.getElementById('submitStock').textContent = 'Salvar alterações';
+      document.getElementById('cancelStockEdit').classList.remove('hidden');
+      nameInput.focus();
+    }
+
+    function cancelStockEdit() {
+      editingProduct = null;
+      form.reset();
+      document.getElementById('stockFormTitle').textContent = 'Novo produto';
+      document.getElementById('submitStock').textContent = '＋ Adicionar produto';
+      document.getElementById('cancelStockEdit').classList.add('hidden');
+    }
+
+    function deleteProduct(id) {
+      if (!confirm('Excluir este produto do estoque?')) return;
+
+      const data = getData();
+      data.produtos = data.produtos.filter(item => item.id !== id);
+      saveData(data);
+
+      if (editingProduct === id) {
+        cancelStockEdit();
+      }
+
+      renderStock();
+    }
+
+    renderStock();
+    window.addEventListener('dataReady', renderStock);
+  </script>
+</body>
+</html>
