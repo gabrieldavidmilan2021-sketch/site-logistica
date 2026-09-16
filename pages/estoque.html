@@ -35,7 +35,7 @@
         <div class="section-heading">
           <div>
             <h2 id="stockFormTitle">Novo produto</h2>
-            <p>Preencha o nome e a quantidade em estoque.</p>
+            <p>Use títulos como “Camisa curta M branca” para organizar automaticamente.</p>
           </div>
         </div>
 
@@ -47,6 +47,10 @@
           <div class="field">
             <label for="stockQty">Quantidade em estoque</label>
             <input id="stockQty" type="number" min="0" step="1" placeholder="0" required>
+          </div>
+          <div class="field">
+            <label for="stockReserved">Camisas reservadas</label>
+            <input id="stockReserved" type="number" min="0" step="1" value="0" required>
           </div>
           <div class="actions wide">
             <button class="button" id="submitStock" type="submit">＋ Adicionar produto</button>
@@ -61,6 +65,7 @@
             <h2>Produtos em estoque</h2>
             <span id="stockCount" class="muted">0 produto(s)</span>
           </div>
+          <input id="stockSearch" class="search stock-search" type="search" placeholder="Pesquisar por modelo, tamanho ou cor">
         </div>
         <div id="stockList" class="stock-list"></div>
       </section>
@@ -73,26 +78,102 @@
     const form = document.getElementById('stockForm');
     const nameInput = document.getElementById('stockName');
     const qtyInput = document.getElementById('stockQty');
+    const reservedInput = document.getElementById('stockReserved');
+    const searchInput = document.getElementById('stockSearch');
+
+    const COLORS = [
+      ['branco', 'branca'], ['preto', 'preta'], ['azul'], ['vermelho', 'vermelha'],
+      ['verde'], ['amarelo', 'amarela'], ['rosa'], ['roxo', 'roxa'], ['laranja'],
+      ['cinza'], ['bege'], ['marrom'], ['lilas'], ['vinho'], ['dourado', 'dourada'],
+      ['prata', 'prateado', 'prateada']
+    ];
+    const SIZE_ORDER = ['PP', 'P', 'M', 'G', 'GG', 'XG', 'XGG', 'XXG'];
+
+    function plainText(value) {
+      return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    }
+
+    function titleCase(value) {
+      return value.replace(/\b\w/g, letter => letter.toUpperCase());
+    }
+
+    function productDetails(name) {
+      let rest = plainText(name).replace(/[-_/]+/g, ' ');
+      let color = 'Sem cor informada';
+      COLORS.some(group => {
+        const match = group.find(item => new RegExp('\\b' + item + '\\b').test(rest));
+        if (!match) return false;
+        color = titleCase(group[0]);
+        rest = rest.replace(new RegExp('\\b(?:' + group.join('|') + ')\\b', 'g'), ' ');
+        return true;
+      });
+
+      const sizeMatch = rest.match(/\b(xxg|xgg|xg|gg|pp|p|m|g|\d{2})\b/i);
+      const size = sizeMatch ? sizeMatch[1].toUpperCase() : 'Sem tamanho informado';
+      if (sizeMatch) rest = rest.replace(/\b(xxg|xgg|xg|gg|pp|p|m|g|\d{2})\b/ig, ' ');
+      rest = rest.replace(/\b(tamanho|tam)\b/g, ' ').replace(/\s+/g, ' ').trim();
+
+      return { model: titleCase(rest || 'Modelo não informado'), size, color };
+    }
+
+    function integer(value) {
+      return Math.max(0, Math.floor(Number(value) || 0));
+    }
+
+    function sizeRank(size) {
+      const rank = SIZE_ORDER.indexOf(size);
+      return rank === -1 ? 999 : rank;
+    }
+
+    function productCard(product) {
+      const quantity = integer(product.quantidade);
+      const reserved = integer(product.reservadas);
+      const available = Math.max(0, quantity - reserved);
+      return `
+        <article class="task-item stock-item">
+          <div class="task-copy">
+            <strong>${esc(product.nome)}</strong>
+            <span class="stock-meta">Estoque: <b>${quantity}</b> · Reservadas: <b>${reserved}</b> · Disponíveis: <b>${available}</b></span>
+          </div>
+          <div class="task-actions stock-actions">
+            <button class="small button" type="button" onclick="increaseQuantity('${product.id}')">+1 unidade</button>
+            <button class="small ghost" type="button" onclick="editProduct('${product.id}')">Editar</button>
+            <button class="small danger" type="button" onclick="deleteProduct('${product.id}')">Excluir</button>
+          </div>
+        </article>`;
+    }
 
     function renderStock() {
+      const query = plainText(searchInput.value.trim());
       const products = getData().produtos
-        .slice()
-        .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+        .filter(product => plainText(product.nome).includes(query))
+        .map(product => ({ ...product, details: productDetails(product.nome) }))
+        .sort((a, b) => a.details.model.localeCompare(b.details.model, 'pt-BR') || a.details.size.localeCompare(b.details.size, 'pt-BR') || a.details.color.localeCompare(b.details.color, 'pt-BR') || a.nome.localeCompare(b.nome, 'pt-BR'));
 
-      document.getElementById('stockCount').textContent = products.length + ' produto(s)';
+      document.getElementById('stockCount').textContent = products.length + (query ? ' produto(s) encontrado(s)' : ' produto(s)');
+      const groups = new Map();
+      products.forEach(product => {
+        const { model, size, color } = product.details;
+        if (!groups.has(model)) groups.set(model, new Map());
+        if (!groups.get(model).has(size)) groups.get(model).set(size, new Map());
+        const colors = groups.get(model).get(size);
+        if (!colors.has(color)) colors.set(color, []);
+        colors.get(color).push(product);
+      });
       document.getElementById('stockList').innerHTML = products.length
-        ? products.map(product => `
-            <article class="task-item stock-item">
-              <div class="task-copy">
-                <strong>${esc(product.nome)}</strong>
-                <span class="stock-meta">Quantidade: <b>${Number(product.quantidade || 0)}</b></span>
-              </div>
-              <div class="task-actions">
-                <button class="icon" title="Editar produto" aria-label="Editar produto" onclick="editProduct('${product.id}')">✏️</button>
-                <button class="icon" title="Excluir produto" aria-label="Excluir produto" onclick="deleteProduct('${product.id}')">🗑️</button>
-              </div>
-            </article>
-          `).join('')
+        ? [...groups.entries()].map(([model, sizes]) => `
+            <section class="stock-model-group">
+              <h3>${esc(model)}</h3>
+              ${[...sizes.entries()].sort(([a], [b]) => sizeRank(a) - sizeRank(b) || a.localeCompare(b, 'pt-BR')).map(([size, colors]) => `
+                <div class="stock-size-group">
+                  <h4>Tamanho: ${esc(size)}</h4>
+                  ${[...colors.entries()].sort(([a], [b]) => a.localeCompare(b, 'pt-BR')).map(([color, items]) => `
+                    <div class="stock-color-group">
+                      <h5>Cor: ${esc(color)}</h5>
+                      ${items.map(productCard).join('')}
+                    </div>`).join('')}
+                </div>`).join('')}
+            </section>`).join('')
         : '<div class="empty task-empty">Nenhum produto cadastrado no estoque.</div>';
     }
 
@@ -100,11 +181,17 @@
       event.preventDefault();
       const data = getData();
       const nome = nameInput.value.trim();
-      const quantidade = Number(qtyInput.value || 0);
+      const quantidade = integer(qtyInput.value);
+      const reservadas = integer(reservedInput.value);
 
       if (!nome) {
         alert('Informe o nome do produto.');
         nameInput.focus();
+        return;
+      }
+      if (reservadas > quantidade) {
+        alert('A quantidade reservada não pode ser maior que o estoque.');
+        reservedInput.focus();
         return;
       }
 
@@ -113,12 +200,14 @@
         if (product) {
           product.nome = nome;
           product.quantidade = quantidade;
+          product.reservadas = reservadas;
         }
       } else {
         data.produtos.push({
           id: uid(),
           nome,
           quantidade,
+          reservadas,
           criadoEm: new Date().toISOString()
         });
       }
@@ -135,6 +224,7 @@
       editingProduct = id;
       nameInput.value = product.nome;
       qtyInput.value = Number(product.quantidade || 0);
+      reservedInput.value = integer(product.reservadas);
       document.getElementById('stockFormTitle').textContent = 'Editar produto';
       document.getElementById('submitStock').textContent = 'Salvar alterações';
       document.getElementById('cancelStockEdit').classList.remove('hidden');
@@ -163,7 +253,17 @@
       renderStock();
     }
 
+    function increaseQuantity(id) {
+      const data = getData();
+      const product = data.produtos.find(item => item.id === id);
+      if (!product) return;
+      product.quantidade = integer(product.quantidade) + 1;
+      saveData(data);
+      renderStock();
+    }
+
     renderStock();
+    searchInput.addEventListener('input', renderStock);
     window.addEventListener('dataReady', renderStock);
   </script>
 </body>
