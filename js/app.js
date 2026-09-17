@@ -106,6 +106,30 @@ function renderDashboard(){
  if(summary) summary.innerHTML=`<div class="summary-row"><span>Receita de vendas</span><b>${brl(sums.vendas)}</b></div><div class="summary-row"><span>Total de gastos</span><b>${brl(sums.gastos)}</b></div><div class="summary-row"><span>Total investido</span><b>${brl(sums.investimentos)}</b></div><div class="summary-row total"><span>Resultado líquido</span><b>${brl(sums.vendas-sums.gastos-sums.investimentos)}</b></div>`;
 }
 function productName(id){const p=getData().produtos.find(x=>x.id===id);return p?p.nome:''}
+function formatRecordDate(date){return date?new Date(date+'T12:00').toLocaleDateString('pt-BR'):'Sem data'}
+function rowsGroupedByDate(items,columns,row){
+  let lastDate;
+  return items.map(item=>{
+    const date=item.data||'';
+    const divider=date!==lastDate?`<tr class="date-divider"><td colspan="${columns}"><span>${formatRecordDate(date)}</span></td></tr>`:'';
+    lastDate=date;
+    return divider+row(item);
+  }).join('');
+}
+function monthLabel(date){
+  if(!date)return 'Sem mês';
+  const parsed=new Date(date+'T12:00');
+  return Number.isNaN(parsed.getTime())?'Sem mês':parsed.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+}
+function rowsGroupedByMonth(items,columns,row){
+  let lastMonth;
+  return items.map(item=>{
+    const month=item.data?item.data.slice(0,7):'';
+    const divider=month!==lastMonth?`<tr class="date-divider month-divider"><td colspan="${columns}"><span>${monthLabel(item.data)}</span></td></tr>`:'';
+    lastMonth=month;
+    return divider+row(item);
+  }).join('');
+}
 function ensureTasksLink(){
   const nav=document.querySelector('.sidebar nav');
   if(nav&&location.pathname.includes('/pages/')&&!nav.querySelector('a[href="tarefas.html"]')){
