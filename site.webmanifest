@@ -1,0 +1,9 @@
+{
+  "name": "Minha Loja",
+  "short_name": "Minha Loja",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f7fb",
+  "theme_color": "#171923",
+  "icons": [{"src": "/IMG/logo.png", "type": "image/png"}]
+}

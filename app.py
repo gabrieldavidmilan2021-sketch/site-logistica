@@ -52,6 +52,10 @@ def api_save_data():
 def index():
     return send_from_directory(BASE, "index.html")
 
+@app.get("/favicon.ico")
+def favicon():
+    return send_from_directory(os.path.join(BASE, "IMG"), "logo.png", mimetype="image/png")
+
 @app.get("/<path:path>")
 def static_files(path):
     return send_from_directory(BASE, path)
