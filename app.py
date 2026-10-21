@@ -1,11 +1,27 @@
 from flask import Flask, jsonify, request, send_from_directory
-import sqlite3, json, os
+import hmac, sqlite3, json, os
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 DB = os.environ.get("DB_PATH", os.path.join(BASE, "loja.db"))
 app = Flask(__name__, static_folder=".", static_url_path="")
 
 DEFAULT = {"vendas": [], "gastos": [], "investimentos": [], "tarefas": [], "produtos": []}
+
+@app.before_request
+def require_authentication():
+    expected_username = os.environ.get("APP_USERNAME")
+    expected_password = os.environ.get("APP_PASSWORD")
+    if not expected_username or not expected_password:
+        return jsonify({"error": "Autenticação não configurada"}), 503
+
+    credentials = request.authorization
+    if (
+        credentials is None
+        or not hmac.compare_digest(credentials.username or "", expected_username)
+        or not hmac.compare_digest(credentials.password or "", expected_password)
+    ):
+        return "Autenticação necessária", 401, {"WWW-Authenticate": 'Basic realm="Minha Loja"'}
+
 
 def normalize_data(data):
     source = data if isinstance(data, dict) else {}

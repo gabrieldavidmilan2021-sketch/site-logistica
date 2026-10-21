@@ -7,6 +7,10 @@ services:
     envVars:
       - key: DB_PATH
         value: /var/data/loja.db
+      - key: APP_USERNAME
+        sync: false
+      - key: APP_PASSWORD
+        sync: false
     disk:
       name: loja-dados
       mountPath: /var/data
