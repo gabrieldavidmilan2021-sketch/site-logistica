@@ -1,6 +1,7 @@
 loja.db
 loja.db.backup*
 teste_loja.db
+backup-minha-loja-*.json
 __pycache__/
 *.py[cod]
 .env
